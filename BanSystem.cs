@@ -39,7 +39,6 @@ namespace Oxide.Plugins
         private GameObject _mainObject;
         private BansData _bansData;
         private static BanSystem _plugin;
-        private bool _initialized = false;
 
         protected override void LoadDefaultConfig() { } // Совместимость с .cs плагинами, создание пустого файла конфигурации.
 
@@ -177,7 +176,7 @@ namespace Oxide.Plugins
             }
 
             var banRegex = new Regex("banid\\s+(\\d+)\\s+\"[^\"]*\"\\s+\"([^\"]*)\"", RegexOptions.Compiled);
-
+            
             List<string> bans = fileText.Split('\n').ToList();
             for (int i = bans.Count - 1; i >= 0; i--)
             {
@@ -236,7 +235,7 @@ namespace Oxide.Plugins
             Log.Debug($"Баны из файла {fileName} синхронизированы локально, идет синхронизация с сайтом");
             SyncBanList(_bansData.noSyncBans, (success) =>
             {
-                Log.Debug(success ? "Баны успешно синхронизированы" :
+                Log.Debug(success ? "Баны успешно синхронизированы" : 
                     "Во время синхронизации банов произошла ошибка, синхронизация будет повторена позже");
             });
         }
@@ -314,7 +313,7 @@ namespace Oxide.Plugins
         [HookMethod("OnPluginLoaded")]
         private void OnPluginLoaded(Plugin plugin)
         {
-            if (plugin.Name == "RustStore" && _initialized)
+            if (plugin.Name == "RustStore")
             {
                 PostInitialize();
             }
@@ -324,16 +323,14 @@ namespace Oxide.Plugins
         {
             if (_mainObject != null)
                 return;
-
-            _initialized = true;
-
+            
             Plugin store = _plugins.Find("RustStore");
             if (store == null || !store.IsLoaded)
             {
                 Log.Warning("Не найден обязательный плагин RustStore, ожидается его загрузка.");
                 return;
             }
-
+            
             Log.Debug("Синхронизация с магазином...");
 
             string storeId;
@@ -394,7 +391,7 @@ namespace Oxide.Plugins
 
             _webApi.AddBanListData["data"] = JsonConvert.SerializeObject(syncCopy);
             _webApi.PostRequest(_webApi.AddBanListData, (success, res) =>
-            {
+            { 
                 if (!success)
                 {
                     onSync?.Invoke(false);
@@ -442,7 +439,7 @@ namespace Oxide.Plugins
                 owner = 0;
             }
 
-            BansData.SyncBanData noSynced = _bansData.noSyncBans.FirstOrDefault(p => p.steamID == steam || p.familyShare == steam ||
+            BansData.SyncBanData noSynced = _bansData.noSyncBans.FirstOrDefault(p => p.steamID == steam || p.familyShare == steam || 
                                 owner > 0 && (p.familyShare == owner || p.steamID == owner));
             if (noSynced != default(BansData.SyncBanData))
             {
@@ -502,7 +499,7 @@ namespace Oxide.Plugins
                 name = "Игрок с таким именем не найден";
                 return false;
             }
-
+            
             if (players.Count > 1)
             {
                 name = $"Найдены совпадения по имени: {string.Join(" ", players.Select(p => p.displayName).ToArray())}";
@@ -624,7 +621,7 @@ namespace Oxide.Plugins
                 foreach (BasePlayer brodPlayer in BasePlayer.activePlayerList)
                 {
                     brodPlayer.ChatMessage(
-                        banTime == 0
+                        banTime == 0 
                         ? GetLangMessage(string.IsNullOrEmpty(reason) ? "BAN.BROADCAST.FOREVER" : "BAN.BROADCAST.FOREVER.REASON", brodPlayer)
                         .Replace("{reason}", reason)
                         .Replace("{name}", name)
@@ -668,8 +665,8 @@ namespace Oxide.Plugins
                 {
                     onMessage($"Игрок {name}{steam} уже забанен");
                     return;
-                }
-
+                }        
+                
                 Interface.Oxide.CallHook("OnBanSystemBan", steam, owner, reason, banTime, bannedBy, single);
                 LogAdmin($"был забанен {banTimeString}" , bannedBy, name, steamStr);
                 onMessage($"Игрок {name}{steam} успешно забанен {banTimeString}");
@@ -775,7 +772,7 @@ namespace Oxide.Plugins
                 ServerUsers.User serverUser = ServerUsers.Get(steamId);
                 if (serverUser != null && serverUser.group == ServerUsers.UserGroup.Banned)
                 {
-                    ServerUsers.Remove(steamId);
+                    ServerUsers.Remove(steamId); 
                     ConsoleSystem.Run(ConsoleSystem.Option.Unrestricted, "server.writecfg");
                 } else if (res.message == "userNotBanned")
                 {
@@ -915,7 +912,7 @@ namespace Oxide.Plugins
             UnbanPlayer(args[0], player.userID, player.ChatMessage);
         }
 
-        private bool BanConsoleCmd(ConsoleSystem.Arg arg)
+        private bool BanConsoleCmd(ConsoleSystem.Arg arg) 
         {
             var bannedBy = 0UL;
             if (arg.Connection != null)
